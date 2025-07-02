@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Booker's Mega Arcade 🎮</title>
+<style>
+  body {
+    background-color: #121212;
+    color: #00ffcc;
+    font-family: 'Courier New', monospace;
+    text-align: center;
+    padding: 20px;
+    margin: 0;
+  }
+  h1 {
+    font-size: 3em;
+    margin-bottom: 0;
+  }
+  .button {
+    display: inline-block;
+    margin: 10px 10px 20px;
+    padding: 12px 25px;
+    border: none;
+    background-color: #00ffcc;
+    color: #121212;
+    font-size: 1.1em;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.3s;
+  }
+  .button:hover {
+    background-color: #00cc99;
+  }
+  #gameArea {
+    margin-top: 20px;
+    min-height: 420px;
+  }
+  canvas {
+    background: #000;
+    display: block;
+    margin: 20px auto;
+  }
+  table {
+    margin: 10px auto;
+    border-collapse: collapse;
+  }
+  td {
+    border: 1px solid #00ffcc;
+    width: 50px;
+    height: 50px;
+    font-size: 2em;
+    cursor: pointer;
+    color: #00ffcc;
+  }
+  .quote {
+    color: #ff66cc;
+    font-style: italic;
+  }
+  button.game-btn {
+    margin: 5px;
+    padding: 8px 15px;
+    font-size: 1em;
+    border-radius: 8px;
+  }
+</style>
+</head>
+<body>
+
+<h1>🎮 Booker's Mega Arcade 🎮</h1>
+<p>Pick your game, legend:</p>
+
+<div id="buttons">
+  <button class="button" onclick="startTicTacToe()">Tic Tac Toe</button>
+  <button class="button" onclick="startSnake()">Snake</button>
+  <button class="button" onclick="startRPS()">Rock Paper Scissors</button>
+  <button class="button" onclick="startFlappy()">Flappy Block</button>
+  <button class="button" onclick="startTetris()">Tetris</button>
+  <button class="button" onclick="startPong()">Pong</button>
+  <button class="button" onclick="start2048()">2048</button>
+  <button class="button" onclick="startWhackAMole()">Whack-a-Mole</button>
+  <button class="button" onclick="startMemory()">Memory Match</button>
+  <button class="button" onclick="startClicker()">Clicker Game</button>
+  <button class="button" onclick="startAgar()">Agar.io Lite</button>
+</div>
+
+<div id="gameArea"></div>
+
+<script>
+  // Clear game area helper
+  function clearGameArea() {
+    document.getElementById('gameArea').innerHTML = '';
+    // Remove any key handlers
+    document.onkeydown = null;
+    document.onkeyup = null;
+  }
+
+  // ----------- TIC TAC TOE -----------
+  function startTicTacToe() {
+    clearGameArea();
+    let currentPlayer = 'X';
+    let board = ['', '', '', '', '', '', '', '', ''];
+    const gameArea = document.getElementById('gameArea');
+
+    gameArea.innerHTML = '<h2>Tic Tac Toe</h2><table id="board"></table><p id="status"></p><button onclick="startTicTacToe()" class="game-btn">Restart</button>';
+
+    const table = document.getElementById('board');
+    const status = document.getElementById('status');
+
+    function checkWinner() {
+      const wins = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+      ];
+      for (let w of wins) {
+        if (board[w[0]] && board[w[0]] === board[w[1]] && board[w[1]] === board[w[2]]) {
+          return board[w[0]];
+        }
+      }
+      return board.includes('') ? null : 'Tie';
+    }
+
+    function render() {
+      table.innerHTML = '';
+      board.forEach((cell, i) => {
+        const td = document.createElement('td');
+        td.textContent = cell;
+        td.onclick = () => {
+          if (!cell && !checkWinner()) {
+            board[i] = currentPlayer;
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            render();
+            const winner = checkWinner();
+            if (winner) {
+              if(winner==='Tie') status.textContent = "It's a Tie!";
+              else status.textContent = winner + ' wins!';
+            }
+          }
+        };
+        table.appendChild(td);
+      });
+    }
+    render();
+  }
+
+  // ----------- SNAKE -----------
+  function startSnake() {
+    clearGameArea();
+    const gameArea = document.getElementById('gameArea');
+    gameArea.innerHTML = '<h2>Snake Game</h2><canvas id="snake" width="300" height="300"></canvas><p>Use arrow keys to move!</p><button onclick="startSnake()" class="game-btn">Restart</button>';
+
+    const canvas = document.getElementById('snake');
+    const ctx = canvas.getContext('2d');
+    const box = 15;
+    let snake = [{x: 9*box, y: 10*box}];
+    let food = {x: Math.floor(Math.random()*20)*box, y: Math.floor(Math.random()*20)*box};
+    let dx = box, dy = 0;
+    let game;
+
+    document.onkeydown = function(e) {
+      if (e.key === "ArrowLeft" && dx === 0) { dx = -box; dy = 0; }
+      else if (e.key === "ArrowUp" && dy === 0) { dx = 0; dy = -box; }
+      else if (e.key === "ArrowRight" && dx === 0) { dx = box; dy = 0; }
+      else if (e.key === "ArrowDown" && dy === 0) { dx = 0; dy = box; }
+    };
+
+    function draw() {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, 300, 300);
+      snake.forEach(s => {
+        ctx.fillStyle = '#00ffcc';
+        ctx.fillRect(s.x, s.y, box, box);
+      });
+      ctx.fillStyle = '#ff66cc';
+      ctx.fillRect(food.x, food.y, box, box);
+
+      let headX = snake[0].x + dx;
+      let headY = snake[0].y + dy;
+
+      if (headX === food.x && headY === food.y) {
+        food = {x: Math.floor(Math.random()*20)*box, y: Math.floor(Math.random()*20)*box};
+      } else {
+        snake.pop();
+      }
+
+      if (headX < 0 || headX >= 300 || headY < 0 || headY >= 300 || snake.some(s => s.x === headX && s.y === headY)) {
+        clearInterval(game);
+        alert('Game Over, Booker!');
+      }
+
+      snake.unshift({x: headX, y: headY});
+    }
+
+    game = setInterval(draw, 150);
+  }
+
+  // ----------- ROCK PAPER SCISSORS -----------
+  function startRPS() {
+    clearGameArea();
+    const gameArea = document.getElementById('gameArea');
+    gameArea.innerHTML = `
+      <h2>Rock Paper Scissors</h2>
+      <button onclick="playRPS('Rock')" class="game-btn">Rock</button>
+      <button onclick="playRPS('Paper')" class="game-btn">Paper</button>
+      <button onclick="playRPS('Scissors')" class="game-btn">Scissors</button>
+      <p id="rpsResult"></p>
+    `;
+  }
+
+  function playRPS(player) {
+    const choices = ['Rock', 'Paper', 'Scissors'];
+    const cpu = choices[Math.floor(Math.random()*3)];
+    let result = '';
+    if (player === cpu) result = "It's a tie!";
+    else if ((player === "Rock" && cpu === "Scissors") || (player === "Paper" && cpu === "Rock") || (player === "Scissors" && cpu === "Paper")) {
+      result = "You win!";
+    } else result = "You lose!";
+    document.getElementById('rpsResult').textContent = `CPU picked ${cpu}. ${result}`;
+  }
+
+  // ----------- FLAPPY BLOCK -----------
+  function startFlappy() {
+    clearGameArea();
+    const gameArea = document.getElementById('gameArea');
+    gameArea.innerHTML = `
+      <h2>Flappy Block</h2>
+      <canvas id="flappy" width="300" height="400"></canvas>
+      <p>Press SPACE to jump</p>
+      <button onclick="startFlappy()" class="game-btn">Restart</button>
+    `;
+    const canvas = document.getElementById('flappy');
+    const ctx = canvas.getContext('2d');
+    let x = 50, y = 150, gravity = 1.5, velocity = 0, gap = 100;
+    let pipes = [{x:300, h:Math.floor(Math.random()*200)+50}];
+    let loop;
+
+    function drawFlappy() {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0,0,300,400);
+
+      ctx.fillStyle = '#00ffcc';
+      ctx.fillRect(x,y,20,20);
+
+      pipes.forEach(p => {
+        ctx.fillRect(p.x,0,30,p.h);
+        ctx.fillRect(p.x,p.h+gap,30,400);
+      });
+
+      y += velocity;
+      velocity += gravity;
+
+      pipes.forEach(p => {
+        p.x -= 3;
+        if(p.x === 150) {
+          pipes.push({x:300, h:Math.floor(Math.random()*200)+50});
+        }
+        if(x < p.x + 30 && x + 20 > p.x && (y < p.h || y > p.h + gap)) {
+          clearInterval(loop);
+          alert('Game Over, Booker!');
+        }
+      });
+
+      if(y > 380 || y < 0){
+        clearInterval(loop);
+        alert('Game Over, Booker!');
+      }
+    }
+
+    document.onkeydown = e => {
+      if(e.code === "Space") velocity = -20;
+    };
+
+    loop = setInterval(drawFlappy, 30);
+  }
+
+  // ----------- TETRIS -----------
+  function startTetris() {
+    clearGameArea();
+    const gameArea = document.getElementById('gameArea');
+    gameArea.innerHTML = `
+      <h2>Tetris</h2>
+      <canvas id="tetris" width="240" height="400"></canvas>
+      <p>Use arrow keys to move, UP to rotate</p>
+      <button onclick="startTetris()" class="game-btn">Restart</button>
+    `;
+    const canvas = document.getElementById('tetris');
+    const ctx = canvas.getContext('2d');
+    const ROWS = 20;
+    const COLS = 10;
+    const BLOCK = 20;
+    ctx.scale(BLOCK, BLOCK);
+
+    const COLORS = [
+      null,
+      '#00ffff',
+      '#ff00ff',
+      '#ffff00',
+      '#00ff00',
+      '#ff0000',
+      '#0000ff',
+      '#ff6600'
+    ];
+
+    const SHAPES = [
+      [],
+      [[1,1,1,1]], // I
+      [[2,2],[2,2]], // O
+      [[0,3,0],[3,3,3]], // T
+      [[4,4,0],[0,4,4]], // S
+      [[0,5,5],[5,5,0]], // Z
+      [[6,0,0],[6,6,6]], // J
+      [[0,0,7],[7,7,7]]  // L
+    ];
+
+    let board = [];
+    for(let r=0; r<ROWS; r++){
+      board[r] = new Array(COLS).fill(0);
+    }
+
+    let piece = null;
+    let pos = {x:3, y:0};
+
+    function drawBoard(){
+      for(let r=0; r<ROWS; r++){
+        for(let c=0; c<COLS; c++){
+          ctx.fillStyle = COLORS[board[r][c]];
+          ctx.fillRect(c, r, 1,1);
+        }
+      }
+    }
+
+    function drawPiece(){
+      piece.forEach((row,y) => {
+        row.forEach((val,x) => {
+          if(val){
+            ctx.fillStyle = COLORS[val];
+            ctx.fillRect(pos.x + x, pos.y + y, 1, 1);
+          }
+        });
+      });
+    }
+
+    function collide(nx, ny, npiece) {
+      for(let y=0; y<npiece.length; y++){
+        for(let x=0; x<npiece[y].length; x++){
+          if(npiece[y][x]){
+            let newX = nx + x;
+            let newY = ny + y;
+            if(newX < 0 || newX >= COLS || newY >= ROWS) return true;
+            if(newY >= 0 && board[newY][newX]) return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function rotate(piece){
+      const N = piece.length;
+      let newPiece = [];
+      for(let y=0; y<N; y++){
+        newPiece[y] = [];
+        for(let x=0; x<N; x++){
+          newPiece[y][x] = piece[N - x - 1][y];
+        }
+      }
+      return newPiece;
+    }
+
+    function merge(){
+      piece.forEach((row,y) => {
+        row.forEach((val,x) => {
+          if(val && pos.y + y >= 0){
+            board[pos.y + y][pos.x + x] = val;
+          }
+        });
+      });
+    }
+
+    function clearLines(){
+      let lines = 0;
+      for(let r=ROWS-1; r>=0; r--){
+        if(board[r].every(val => val !== 0)){
+          board.splice(r, 1);
+          board.unshift(new Array(COLS).fill(0));
+          lines++;
+          r++;
+        }
+      }
+      return lines;
+    }
+
+    function newPiece() {
+      const id = Math.floor(Math.random() * (SHAPES.length - 1)) + 1;
+      return SHAPES[id];
+    }
+
+    let dropCounter = 0;
+    let dropInterval = 1000;
+    let lastTime = 0;
+
+    function update(time=0) {
+      const deltaTime = time - lastTime;
+      lastTime = time;
+      dropCounter += deltaTime;
+      if(dropCounter > dropInterval){
+        if(!collide(pos.x, pos.y + 1, piece)){
+          pos.y++;
+        } else {
+          merge();
+          clearLines();
+          pos = {x:3, y:0};
+          piece = newPiece();
+          if(collide(pos.x, pos.y, piece)){
+            alert('Game Over, Booker!');
+            board = [];
+            for(let r=0; r<ROWS; r++){
+              board[r] = new Array(COLS).fill(0);
+            }
+          }
+        }
+        dropCounter = 0;
+      }
+      drawBoard();
+      drawPiece();
+      requestAnimationFrame(update);
+    }
+
+    function move(dir){
+      if(!collide(pos.x + dir, pos.y, piece)){
+        pos.x += dir;
+      }
+    }
+
+    function rotatePiece(){
+      const rotated = rotate(piece);
+      if(!collide(pos.x, pos.y, rotated)){
+        piece = rotated;
+      }
+    }
+
+    window.onkeydown = function(e){
+      if (document.activeElement.tagName === 'BUTTON') return; // prevent when clicking buttons
+      if(e.key === 'ArrowLeft') move(-1);
+      else if(e.key === 'ArrowRight') move(1);
+      else if(e.key === 'ArrowUp') rotatePiece();
+      else if(e.key === 'ArrowDown') {
+        if(!collide(pos.x, pos.y + 1, piece)) pos.y++;
+      }
+    };
+
+    piece = newPiece();
+    update();
+  }
+
+  // ----------- PONG -----------
+  function startPong() {
+    clearGameArea();
+    const gameArea = document.getElementById('gameArea');
+    gameArea.innerHTML = `
+      <h2>Pong</h2>
+      <canvas id="pong" width="400" height="300"></canvas>
+      <p>Use W/S keys to move left paddle</p>
+      <button onclick="startPong()" class="game-btn">Restart</button>
+    `;
+    const canvas = document.getElementById('pong');
+    const ctx = canvas.getContext('2d');
+
+    let leftY = 110;
+    let rightY = 110;
+    let ballX = 200;
+    let ballY = 150;
+    let ballSpeedX = 4;
+    let ballSpeedY = 3;
+    const paddleHeight = 80;
+    const paddleWidth = 10;
+    const canvasWidth = 400;
+    const canvasHeight = 300;
+
+    let wPressed = false;
+    let sPressed = false;
+
+    document.onkeydown = function(e) {
+      if(e.key === 'w' || e.key === 'W') wPressed = true;
+      else if(e.key === 's' || e.key === 'S') sPressed = true;
+    };
+    document.onkeyup = function(e) {
+      if(e.key === 'w' || e.key === 'W') wPressed = false;
+      else if(e.key === 's' || e.key === 'S') sPressed = false;
+    };
+
+    function drawRect(x, y, w, h, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, w, h);
+    }
+
+    function drawBall(x, y, r, color) {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2, false);
+      ctx.fill();
+    }
+
+    function resetBall() {
+      ballX = canvasWidth / 2;
+      ballY = canvasHeight / 2;
+      ballSpeedX = -ballSpeedX;
+      ballSpeedY = 3 * (Math.random() > 0.5 ? 1 : -1);
+    }
+
+    function gameLoop() {
+      if (wPressed && leftY > 0) leftY -= 6;
+      if (sPressed && leftY < canvasHeight - paddleHeight) leftY += 6;
+
+      ballX += ballSpeedX;
+      ballY += ballSpeedY;
+
+      if (ballY + 10 > canvasHeight || ballY - 10 < 0) {
+        ballSpeedY = -ballSpeedY;
+      }
+
+      if (
+        ballX - 10 < paddleWidth &&
+        ballY > leftY &&
+        ballY < leftY + paddleHeight
+      ) {
+        ballSpeedX = -ballSpeedX;
+      }
+
+      if (
+        ballX + 10 > canvasWidth - paddleWidth &&
+        ballY > rightY &&
+        ballY < rightY + paddleHeight
+      ) {
+        ballSpeedX = -ballSpeedX;
+      }
+
+      if (rightY + paddleHeight / 2 < ballY) rightY += 5;
+      else rightY -= 5;
+      if (rightY < 0) rightY = 0;
+      if (rightY > canvasHeight - paddleHeight) rightY = canvasHeight - paddleHeight;
+
+      if (ballX < 0) {
+        alert('You lost, Booker! Try again!');
+        resetBall();
+      }
+      if (ballX > canvasWidth) {
+        alert('You scored, Booker! Nice!');
+        resetBall();
+      }
+
+      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+      drawRect(0, leftY, paddleWidth, paddleHeight, '#00ffcc');
+      drawRect(canvasWidth - paddleWidth, rightY, paddleWidth, paddleHeight, '#ff66cc');
+      drawBall(ballX, ballY, 10, '#00ffcc');
+    }
+
+    setInterval(gameLoop, 1000 / 60);
+  }
+
+  // ----------- 2048 -----------
+  function start2048() {
+    clearGameArea();
+    const gameArea = document.getElementById('gameArea');
+    gameArea.innerHTML = `
+      <h2>2048</h2>
+      <div id="grid" style="width: 300px; margin: 20px auto;"></div>
+      <p>Use arrow keys to move tiles</p>
+      <button onclick="start2048()" class="game-btn">Restart</button>
+    `;
+
+    const size = 4;
+    let grid = [];
+    let score = 0;
+    const gridEl = document.getElementById('grid');
+
+    function createGrid() {
+      gridEl.style.display = 'grid';
+      gridEl.style.gridTemplateColumns = `repeat(${size}, 70px)`;
+      gridEl.style.gridGap = '5px';
+      gridEl.style.justifyContent = 'center';
+
+      for(let i=0; i < size*size; i++){
+        const cell = document.createElement('div');
+        cell.style.width = '70px';
+        cell.style.height = '70px';
+        cell.style.background = '#111';
+        cell.style.color = '#00ffcc';
+        cell.style.fontSize = '2em';
+        cell.style.display = 'flex';
+        cell.style.alignItems = 'center';
+        cell.style.justifyContent = 'center';
+        cell.style.borderRadius = '8px';
+        cell.textContent = '';
+        gridEl.appendChild(cell);
+      }
+    }
+
+    function updateGrid(){
+      const cells = gridEl.children;
+      for(let i=0; i < size*size; i++){
+        const val = grid[Math.floor(i/size)][i%size];
+        cells[i].textContent = val === 0 ? '' : val;
+        cells[i].style.background = val === 0 ? '#111' : '#00ffcc';
+      }
+    }
+
+    function addRandom(){
+      let options = [];
+      for(let r=0; r<size; r++){
+        for(let c=0; c<size; c++){
+          if(grid[r][c] === 0) options.push({r,c});
+        }
+      }
+      if(options.length === 0) return false;
+      let spot = options[Math.floor(Math.random()*options.length)];
+      grid[spot.r][spot.c] = Math.random() < 0.9 ? 2 : 4;
+      return true;
+    }
+
+    function setup(){
+      grid = [];
+      for(let r=0; r<size; r++){
+        grid[r] = new Array(size).fill(0);
+      }
+      addRandom();
+      addRandom();
+      updateGrid();
+    }
+
+    function slide(row){
+      let arr = row.filter(val => val);
+      for(let i=0; i < arr.length - 1; i++){
+        if(arr[i] === arr[i+1]){
+          arr[i] *= 2;
+          score += arr[i];
+          arr.splice(i+1, 1);
+        }
+      }
+      while(arr.length < size) arr.push(0);
+      return arr;
+    }
+
+    function rotateGrid() {
+      let newGrid = [];
+      for(let c=0; c < size; c++){
+        newGrid[c] = [];
+        for(let r=size-1; r >= 0; r--){
+          newGrid[c][size-1-r] = grid[r][c];
+        }
+      }
+      grid = newGrid;
+    }
+
+    function moveLeft() {
+      let moved = false;
+      for(let r=0; r<size; r++){
+        let newRow = slide(grid[r]);
+        if (JSON.stringify(newRow) !== JSON.stringify(grid[r])) moved = true;
+        grid[r] = newRow;
+      }
+      return moved;
+    }
+
+    function moveRight() {
+      grid.forEach((row, i) => {
+        row.reverse();
+        grid[i] = slide(row).reverse();
+      });
+    }
+
+    function moveUp() {
+      rotateGrid();
+      let moved = moveLeft();
+      rotateGrid();
+      rotateGrid();
+      rotateGrid();
+      return moved;
+    }
+
+    function moveDown() {
+      rotateGrid();
+      moveRight();
+      rotateGrid();
+      rotateGrid();
+      rotateGrid();
+    }
+
+    document.onkeydown = function(e){
+      let moved = false;
+      if(e.key === 'ArrowLeft'){
+        moved = moveLeft();
+      } else if(e.key === 'ArrowRight'){
+        moveRight();
+        moved = true;
+      } else if(e.key === 'ArrowUp'){
+        moved = moveUp();
+        moved = true;
+      } else if(e.key === 'ArrowDown'){
+        moveDown();
+        moved = true;
+      }
+      if(moved){
+        addRandom();
+        updateGrid();
+        if(checkGameOver()){
+          alert("Game Over, Booker!");
+          setup();
+        }
+      }
+    };
+
+    function checkGameOver(){
+      for(let r=0; r<size; r++){
+        for(let c=0; c<size; c++){
+          if(grid[r][c] === 0) return false;
+          if(c !== size-1 && grid[r][c] === grid[r][c+1]) return false;
+          if(r !== size-1 && grid[r][c] === grid[r+1][c]) return false;
+        }
+      }
+      return true;
+    }
+
+    createGrid();
+    setup();
+  }
+
+  // ----------- WHACK-A-MOLE -----------
+  function startWhackAMole() {
+    clearGameArea();
+    const gameArea = document.getElementById('gameArea');
+    gameArea.innerHTML = `
+      <h2>Whack-a-Mole</h2>
+      <p>Click the mole when it pops up!</p>
+      <div id="moleGrid" style="width: 300px; margin: auto; display: grid; grid-template-columns: repeat(3, 100px); grid-gap: 5px;"></div>
+      <p>Score: <span id="score">0</span></p>
+      <button onclick="startWhackAMole()" class="game-btn">Restart</button>
+    `;
+    const moleGrid = document.getElementById('moleGrid');
+    const scoreEl = document.getElementById('score');
+    let score = 0;
+    let moleIndex = -1;
+    let interval;
+
+    moleGrid.innerHTML = '';
+    for(let i=0; i<9; i++){
+      const hole = document.createElement('div');
+      hole.style.width = '90px';
+      hole.style.height = '90px';
+      hole.style.backgroundColor = '#111';
+      hole.style.borderRadius = '20px';
+      hole.style.cursor = 'pointer';
+      hole.style.position = 'relative';
+      hole.id = 'hole'+i;
+      moleGrid.appendChild(hole);
+      hole.onclick = () => {
+        if(i === moleIndex){
+          score++;
+          scoreEl.textContent = score;
+          moleIndex = -1;
+          showMole();
+        }
+      };
+    }
+
+    function showMole(){
+      if(moleIndex >= 0){
+        document.getElementById('hole'+moleIndex).style.backgroundColor = '#111';
+      }
+      moleIndex = Math.floor(Math.random()*9);
+      document.getElementById('hole'+moleIndex).style.backgroundColor = '#00ffcc';
+    }
+
+    interval = setInterval(showMole, 800);
+    showMole();
+  }
+
+  // ----------- MEMORY MATCH -----------
+  function startMemory() {
+    clearGameArea();
+    const gameArea = document.getElementById('gameArea');
+    const cards = ['🐍','🍎','🚀','🌟','🍕','🎮','🐍','🍎','🚀','🌟','🍕','🎮'];
+    let shuffled = cards.sort(() => 0.5 - Math.random());
+    let flipped = [];
+    let matched = [];
+    let lock = false;
+
+    gameArea.innerHTML = `
+      <h2>Memory Match</h2>
+      <div id="memoryGrid" style="width: 300px; margin: auto; display: grid; grid-template-columns: repeat(4, 70px); grid-gap: 10px;"></div>
+      <button onclick="startMemory()" class="game-btn">Restart</button>
+    `;
+
+    const memoryGrid = document.getElementById('memoryGrid');
+
+    shuffled.forEach((emoji, i) => {
+      const card = document.createElement('div');
+      card.style.width = '70px';
+      card.style.height = '70px';
+      card.style.background = '#111';
+      card.style.color = '#00ffcc';
+      card.style.fontSize = '2em';
+      card.style.display = 'flex';
+      card.style.alignItems = 'center';
+      card.style.justifyContent = 'center';
+      card.style.borderRadius = '8px';
+      card.style.cursor = 'pointer';
+      card.textContent = '?';
+      memoryGrid.appendChild(card);
+
+      card.onclick = () => {
+        if(lock || flipped.includes(i) || matched.includes(i)) return;
+        card.textContent = emoji;
+        flipped.push(i);
+
+        if(flipped.length === 2) {
+          lock = true;
+          setTimeout(() => {
+            const [a,b] = flipped;
+            if(shuffled[a] === shuffled[b]) {
+              matched.push(a,b);
+              if(matched.length === shuffled.length) alert('You win, Booker!');
+            } else {
+              memoryGrid.children[a].textContent = '?';
+              memoryGrid.children[b].textContent = '?';
+            }
+            flipped = [];
+            lock = false;
+          }, 1000);
+        }
+      };
+    });
+  }
+
+  // ----------- CLICKER GAME -----------
+  function startClicker() {
+    clearGameArea();
+    const gameArea = document.getElementById('gameArea');
+    let score = 0;
+
+    gameArea.innerHTML = `
+      <h2>Clicker Game</h2>
+      <button id="clickerBtn" class="game-btn" style="font-size:2em;">Click Me!</button>
+      <p>Clicks: <span id="clicks">0</span></p>
+      <button onclick="startClicker()" class="game-btn">Restart</button>
+    `;
+
+    const btn = document.getElementById('clickerBtn');
+    const clicks = document.getElementById('clicks');
+
+    btn.onclick = () => {
+      score++;
+      clicks.textContent = score;
+      if(score === 100) alert("You reached 100 clicks, Booker! Nice!");
+    };
+  }
+
+  // ----------- AGAR.IO LITE -----------
+  function startAgar() {
+    clearGameArea();
+    const gameArea = document.getElementById('gameArea');
+    gameArea.innerHTML = `
+      <h2>Agar.io Lite</h2>
+      <canvas id="agar" width="400" height="400"></canvas>
+      <p>Use mouse to move your cell</p>
+      <button onclick="startAgar()" class="game-btn">Restart</button>
+    `;
+
+    const canvas = document.getElementById('agar');
+    const ctx = canvas.getContext('2d');
+    const player = {x: 200, y: 200, radius: 15, color: '#00ffcc'};
+    const foods = [];
+    const foodCount = 30;
+
+    for(let i=0; i < foodCount; i++){
+      foods.push({
+        x: Math.random()*400,
+        y: Math.random()*400,
+        radius: 5,
+        color: '#ff66cc'
+      });
+    }
+
+    let mouse = {x: player.x, y: player.y};
+
+    canvas.onmousemove = e => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+    };
+
+    function drawCircle(c) {
+      ctx.beginPath();
+      ctx.fillStyle = c.color;
+      ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function distance(a,b){
+      return Math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2);
+    }
+
+    function update(){
+      ctx.clearRect(0,0,400,400);
+      // move player towards mouse
+      let angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
+      player.x += Math.cos(angle) * 3;
+      player.y += Math.sin(angle) * 3;
+
+      // eat food
+      for(let i=foods.length-1; i>=0; i--){
+        if(distance(player, foods[i]) < player.radius + foods[i].radius){
+          player.radius += 0.5;
+          foods.splice(i,1);
+        }
+      }
+
+      drawCircle(player);
+      foods.forEach(drawCircle);
+
+      requestAnimationFrame(update);
+    }
+
+    update();
+  }
+</script>
+
+</body>
+</html>
